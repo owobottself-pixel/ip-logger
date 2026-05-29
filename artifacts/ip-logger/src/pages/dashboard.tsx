@@ -2,21 +2,44 @@ import { useGetStatsSummary } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
-import { ArrowRight, Globe, Fingerprint, Activity, Link as LinkIcon } from "lucide-react";
+import { ArrowRight, Globe, Fingerprint, Activity, Link as LinkIcon, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
-  const { data: stats, isLoading } = useGetStatsSummary();
+  const { data: stats, isLoading, isError, refetch } = useGetStatsSummary();
 
   if (isLoading) {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold tracking-widest text-primary uppercase border-b border-border pb-4">System Overview</h1>
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <Skeleton className="h-32 bg-secondary" />
           <Skeleton className="h-32 bg-secondary" />
           <Skeleton className="h-32 bg-secondary" />
           <Skeleton className="h-32 bg-secondary" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Skeleton className="h-64 bg-secondary" />
+          <Skeleton className="h-64 bg-secondary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold tracking-widest text-primary uppercase border-b border-border pb-4">System Overview</h1>
+        <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+          <AlertTriangle className="w-12 h-12 text-destructive opacity-60" />
+          <p className="text-destructive uppercase tracking-widest font-bold text-sm">API Connection Error</p>
+          <p className="text-muted-foreground text-xs tracking-wider max-w-xs">
+            Could not reach the server. Check that DATABASE_URL is set in Railway and the service is running.
+          </p>
+          <Button variant="outline" size="sm" className="uppercase tracking-widest text-xs rounded-sm mt-2" onClick={() => refetch()}>
+            Retry
+          </Button>
         </div>
       </div>
     );
@@ -34,7 +57,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="TOTAL LINKS" value={stats?.totalLinks || 0} icon={LinkIcon} />
         <StatCard title="TOTAL INTERCEPTS" value={stats?.totalVisits || 0} icon={Activity} />
         <StatCard title="UNIQUE TARGETS" value={stats?.uniqueIps || 0} icon={Fingerprint} />
