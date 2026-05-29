@@ -31,14 +31,18 @@ app.use("/api", router);
 // Short link slug handler — must come after /api
 app.use("/", shortRouter);
 
-// Serve frontend static files + SPA catch-all
-const publicDir = path.join(import.meta.dirname, "../public");
+// Serve frontend static files + SPA catch-all.
+// The ip-logger frontend builds to artifacts/ip-logger/dist/public/,
+// which is two levels up then into ip-logger from the api-server dist dir.
+const publicDir = path.join(import.meta.dirname, "../../ip-logger/dist/public");
 if (existsSync(publicDir)) {
   app.use(express.static(publicDir));
   app.get("/{*splat}", (_req, res) => {
     res.sendFile(path.join(publicDir, "index.html"));
   });
   logger.info({ publicDir }, "Serving frontend static files");
+} else {
+  logger.warn({ publicDir }, "Frontend static files not found — frontend will not be served");
 }
 
 export default app;
