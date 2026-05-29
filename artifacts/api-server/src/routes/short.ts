@@ -266,6 +266,16 @@ canvas{display:none}
 </body></html>`);
 }
 
+router.get("/t/:token", async (req, res, next: NextFunction): Promise<void> => {
+  const token = Array.isArray(req.params.token) ? req.params.token[0] : req.params.token;
+  if (!token) { next(); return; }
+  try {
+    await handleTrack(req, res, token);
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get("/:slug", async (req, res, next: NextFunction): Promise<void> => {
   const slug = Array.isArray(req.params.slug) ? req.params.slug[0] : req.params.slug;
   if (!slug || slug.includes(".") || slug === "favicon.ico") { next(); return; }
