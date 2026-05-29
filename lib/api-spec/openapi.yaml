@@ -1,22 +1,26 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: IP Logger API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: links
+    description: Tracking link operations
+  - name: logs
+    description: IP log operations
+  - name: stats
+    description: Statistics operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +28,137 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /links:
+    get:
+      operationId: listLinks
+      tags: [links]
+      summary: List all tracking links
+      responses:
+        "200":
+          description: List of tracking links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrackingLink"
+    post:
+      operationId: createLink
+      tags: [links]
+      summary: Create a new tracking link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrackingLinkInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingLink"
+
+  /links/{id}:
+    get:
+      operationId: getLink
+      tags: [links]
+      summary: Get a tracking link by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tracking link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingLink"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteLink
+      tags: [links]
+      summary: Delete a tracking link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /links/{id}/logs:
+    get:
+      operationId: getLinkLogs
+      tags: [logs]
+      summary: Get logs for a specific tracking link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Logs for the link
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IpLog"
+
+  /logs:
+    get:
+      operationId: listLogs
+      tags: [logs]
+      summary: List all IP logs
+      responses:
+        "200":
+          description: All IP logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IpLog"
+
+  /logs/{id}:
+    delete:
+      operationId: deleteLog
+      tags: [logs]
+      summary: Delete a log entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /stats/summary:
+    get:
+      operationId: getStatsSummary
+      tags: [stats]
+      summary: Get overall statistics summary
+      responses:
+        "200":
+          description: Stats summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +169,135 @@ components:
       required:
         - status
 
+    TrackingLink:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        token:
+          type: string
+        slug:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        redirectUrl:
+          type: ["string", "null"]
+        visitCount:
+          type: integer
+        ogTitle:
+          type: ["string", "null"]
+        ogDescription:
+          type: ["string", "null"]
+        ogImage:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - token
+        - visitCount
+        - createdAt
+
+    TrackingLinkInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        slug:
+          type: string
+        description:
+          type: string
+        redirectUrl:
+          type: string
+        ogTitle:
+          type: string
+        ogDescription:
+          type: string
+        ogImage:
+          type: string
+      required:
+        - name
+
+    IpLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        linkId:
+          type: integer
+        linkName:
+          type: ["string", "null"]
+        ip:
+          type: string
+        userAgent:
+          type: ["string", "null"]
+        country:
+          type: ["string", "null"]
+        region:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        zip:
+          type: ["string", "null"]
+        lat:
+          type: ["number", "null"]
+        lon:
+          type: ["number", "null"]
+        gpsAccuracy:
+          type: ["number", "null"]
+        timezone:
+          type: ["string", "null"]
+        isp:
+          type: ["string", "null"]
+        org:
+          type: ["string", "null"]
+        asn:
+          type: ["string", "null"]
+        mobile:
+          type: ["boolean", "null"]
+        proxy:
+          type: ["boolean", "null"]
+        hosting:
+          type: ["boolean", "null"]
+        referrer:
+          type: ["string", "null"]
+        photo:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - linkId
+        - ip
+        - createdAt
+
+    StatsSummary:
+      type: object
+      properties:
+        totalLinks:
+          type: integer
+        totalVisits:
+          type: integer
+        uniqueIps:
+          type: integer
+        visitsToday:
+          type: integer
+        topLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackingLink"
+        recentLogs:
+          type: array
+          items:
+            $ref: "#/components/schemas/IpLog"
+      required:
+        - totalLinks
+        - totalVisits
+        - uniqueIps
+        - visitsToday
+        - topLinks
+        - recentLogs

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "IP Logger"
+version = "1.0.0"
+id = "artifacts/ip-logger"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24957
+
+[services.development]
+run = "pnpm --filter @workspace/ip-logger run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ip-logger", "run", "build" ]
+publicDir = "artifacts/ip-logger/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24957"
+BASE_PATH = "/"
