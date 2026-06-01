@@ -16,7 +16,15 @@ function getInstance(): { pool: pg.Pool; db: DrizzleDb } {
         "DATABASE_URL must be set. Did you forget to provision a database?",
       );
     }
-    _pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    // Railway PostgreSQL requires SSL; rejectUnauthorized: false handles self-signed certs
+    const sslDisabled =
+      process.env.DATABASE_URL.includes("sslmode=disable") ||
+      process.env.DATABASE_URL.includes("localhost") ||
+      process.env.DATABASE_URL.includes("127.0.0.1");
+    _pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: sslDisabled ? false : { rejectUnauthorized: false },
+    });
     _db = drizzle(_pool, { schema });
   }
   return { pool: _pool, db: _db };
