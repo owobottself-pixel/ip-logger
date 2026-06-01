@@ -1,16 +1,16 @@
-import app from "./app";
-import { logger } from "./lib/logger";
-import { pool } from "@workspace/db";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
-import path from "path";
-import { fileURLToPath } from "url";
+import app from './app';
+import { logger } from './lib/logger';
+import { pool } from '@workspace/db';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const rawPort = process.env["PORT"];
+const rawPort = process.env['PORT'];
 
 if (!rawPort) {
   throw new Error(
-    "PORT environment variable is required but was not provided.",
+    'PORT environment variable is required but was not provided.',
   );
 }
 
@@ -21,26 +21,27 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 if (process.env.DATABASE_URL) {
+  // Migrations are copied into dist/migrations at build time — always resolvable at runtime
   const migrationsFolder = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "../../../lib/db/migrations",
+    'migrations',
   );
   try {
     const db = drizzle(pool);
     await migrate(db, { migrationsFolder });
-    logger.info("Database migrations applied");
+    logger.info('Database migrations applied');
   } catch (err) {
-    logger.error({ err }, "Database migration failed — server will still start");
+    logger.error({ err }, 'Database migration failed — server will still start');
   }
 } else {
-  logger.warn("DATABASE_URL not set — skipping migrations");
+  logger.warn('DATABASE_URL not set — skipping migrations');
 }
 
 app.listen(port, (err) => {
   if (err) {
-    logger.error({ err }, "Error listening on port");
+    logger.error({ err }, 'Error listening on port');
     process.exit(1);
   }
 
-  logger.info({ port }, "Server listening");
+  logger.info({ port }, 'Server listening');
 });
